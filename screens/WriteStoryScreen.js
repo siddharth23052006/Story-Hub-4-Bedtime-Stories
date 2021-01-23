@@ -14,7 +14,7 @@ export default class WriteStorySceen extends React.Component{
   }
 
   submitStory = async()=>{
-    /*db.collection("stories").doc("story-1").get()
+    /*/*db.collection("stories").doc("story-1").get()
     .then((doc)=>{
       console.log(doc.data());
     });*/

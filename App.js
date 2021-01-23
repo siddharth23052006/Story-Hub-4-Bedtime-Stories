@@ -7,7 +7,7 @@ import ReadStoryScreen from './screens/ReadStoryScreen';
 
 export default class App extends React.Component{
   render(){
-    return (
+    return(
       <AppContainer/>
     );
   }

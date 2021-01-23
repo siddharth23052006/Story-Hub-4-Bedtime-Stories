@@ -54,8 +54,8 @@ export default class ReadStoryScreen extends React.Component{
               this.setState({search:search});
             }}
             value = {this.state.search}/>
-          <ScrollView>
-            {this.state.searchResults}
+          <ScrollView style = {styles.scrollView}>
+            <Text style = {styles.scrollViewText}>{this.state.searchResults}</Text>
           </ScrollView>
         </View>
       </View>
@@ -73,5 +73,13 @@ const styles = StyleSheet.create({
     fontSize:20,
     backgroundColor:'#FFF',
     margin:20
+  },
+  scrollView:{
+    backgroundColor: '#FFEFEF',
+    marginHorizontal: 15,
+    textAlign: 'center',
+  },
+  scrollViewText:{
+    color:'#000'
   }
 });
