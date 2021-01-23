@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   scrollViewText:{
-    color:'#000'
+    color:'#000',
+    fontSize:15
   }
 });
