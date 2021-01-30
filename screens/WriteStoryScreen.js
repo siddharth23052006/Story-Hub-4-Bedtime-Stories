@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
     alignContent:'center',
     alignItems:'center',
     margin:30,
+    marginBottom:60,
     justifyContent:'center'
   },
   submitTextStyle:{
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
   },
   authorTitleInputStyle:{
     width:'70%',
-    height:40,
+    height:'7%',
     alignSelf:'center',
     borderWidth:1.5,
     fontSize:20,
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
   },
   storyInput:{
     width:'70%',
-    height:250,
+    height:'40%',
     alignSelf:'center',
     borderWidth:1.5,
     fontSize:20,
