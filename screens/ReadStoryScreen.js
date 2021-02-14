@@ -1,102 +1,208 @@
-import React from 'react';
-import { FlatList } from 'react-native';
-import {Text, View, TextInput, StyleSheet, TouchableOpacity, ScrollView} from 'react-native';
-import {Header} from 'react-native-elements';
-import db from '../Config';
+import React from "react";
+import {StyleSheet, Text, View, FlatList, SafeAreaView, ScrollView, TextInput} from "react-native";
+import db from "../Config";
 
-export default class ReadStoryScreen extends React.Component{
-  constructor(){
+const Item = ({ title }) => (
+  <View style={styles.item}>
+    <Text style={styles.title}>{title}</Text>
+  </View>
+);
+
+export default class ReadStoryScreen extends React.Component {
+  constructor() {
     super();
     this.state = {
-      storiesInDB:[],
-      search:'',
-      searchResults:[]
-    }
+      storiesInDB: [],
+      search: "",
+      searchResults: [],
+    };
   }
 
-  retrieveStories = async()=>{
-    var allStories = []
-    var dbStories = db.collection("stories").get()
-    .then(
-      querySnapshot=>{
-        querySnapshot.forEach(doc=>{
+  retrieveStories = () => {
+    if (this.state.searchResults===[]){
+    var allStories = [];
+    db.collection("stories")
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
           allStories.push(doc.data());
+          // console.log(allStories);
         });
-      }
-    )
-    this.setState({storiesInDB:allStories});
-  }
-
-  searchFilter = async(searchInput)=>{
-    console.log("Search Filter function is called")
-    if (searchInput!=''){
-      var results = this.state.storiesInDB.where("Title","==", searchInput).get();
-      var resultsData = results.data()
-      this.setState({searchResults:resultsData});
-      console.log('if condition');
+        this.setState({ storiesInDB: allStories });
+        console.log("if condition retrieve stories");
+      });
     }
     else{
-      this.setState({searchResults:this.state.storiesInDB});
-      console.log('else condition');
+      this.setState({storiesInDB:this.state.searchResults});
+      console.log("else condition retrieve stories");
     }
-  }
+  };
 
-  componentDidMount(){
+  searchFilter = async(searchInput) => {
+    console.log("Search Filter function is called");
+    if (searchInput != "") {
+      const results = await db.collection("stories").where("Title", "==", searchInput)
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) =>{
+            this.setState({ searchResults: results, storiesInDB:[] });
+            console.log('results setstate.')
+          });
+        });        
+      console.log("if condition search filter");
+      return(
+        <ScrollView>
+        {this.state.searchResults.map((read, index) => {
+          return (
+            <View
+              key={index}
+              style={{
+                borderBottomWidth: 2,
+                marginTop: 20,
+                marginBottom: 20,
+              }}
+            >
+              <Text>{"Story Name: " + read.Title}</Text>
+              <Text>{"Story Author: " + read.AuthorName}</Text>
+            </View>
+          );
+        })}
+      </ScrollView>
+      );
+    }
+    else {
+      this.setState({ searchResults: this.state.storiesInDB });
+      console.log("else condition search filter");
+    }
+  };
+
+  componentDidMount() {
     this.retrieveStories();
+    // const allStories = await db.collection("stories").get();
+
+    // allStories.docs.map((doc) => {
+    //   this.setState({
+    //     storiesInDB: [...this.state.storiesInDB, doc.data()],
+    //   });
+    // });
   }
-  render(){
-    return(
-      <View style = {{flex: 1, backgroundColor:'#FFEFEF'}}>
-        <Header
-          backgroundColor={'#FF0038'}
-          centerComponent={{
-            text:'Story Hub',
-            style:{color:'#EEE', fontSize:20, fontWeight:'bold'}
-          }}
+  renderItem = ({ item }) => <Item title={item.Title} />;
+  render() {
+    return (
+      // <View>
+      //    <Header
+      //     backgroundColor={"#FF0038"}
+      //     centerComponent={{
+      //       text: "Story Hub",
+      //       style: { color: "#EEE", fontSize: 20, fontWeight: "bold" },
+      //     }}
+      //   />
+      //   <View>
+      //     <TextInput
+      //       style={styles.searchText}
+      //       placeholder="Search for a story title"
+      //       onChangeText={(search) => {
+      //         this.searchFilter(search);
+      //         this.setState({ search: search });
+      //       }}
+      //       value={this.state.search}
+      //     />
+      <SafeAreaView style={styles.container}>
+        {/* <FlatList
+          data={this.state.storiesInDB}
+          renderItem={this.renderItem}
+          keyExtractor={(item) => item.id}
+        /> */}
+        {/*<FlatList
+          data={this.state.allStories}
+          renderItem={({ item }) => (
+            <View style={styles.itemContainer}>
+              <Text>Title: {item.Title}</Text>
+              <Text>Author : {item.AuthorName}</Text>
+            </View>
+          )}
+          keyExtractor={(item, index) => index.toString()}
         />
-        <View style = {{alignItems:'center'}}>
-          <TextInput
-            style = {styles.searchText}
-            placeholder = "Search for a story title"
-            onChangeText = {search=>{
-              this.searchFilter(search);
-              this.setState({search:search});
-            }}
-            value = {this.state.search}/>
-          <FlatList
-            style = {styles.scrollView}
-            data = {this.state.allStories}
-            renderItem = {({item})=>{
-              <View style = {{flex:1}}>
-                <Text>Title: {item.Title}</Text>
-                <Text>Author: {item.AuthorName}</Text>
+        {/* <FlatList
+                  data={this.state.storiesInDB}
+          renderItem={({ item }) => {
+            <View style={{ flex: 1 }}>
+              <Text>Title: {item.Title}</Text>
+              <Text>Author: {item.AuthorName}</Text>
+            </View>;
+          }}
+          keyExtractor={(item, index) => index.toString()}
+        /> */}
+        <TextInput
+          style={styles.searchText}
+          placeholder="Search for a story title"
+          onChangeText={(search) => {
+            this.searchFilter(search);
+            this.setState({ search: search });
+          }}
+          value={this.state.search}
+        />
+        <ScrollView>
+          {this.state.storiesInDB.map((read, index) => {
+            return (
+              <View
+                key={index}
+                style={{
+                  borderBottomWidth: 2,
+                  marginTop: 20,
+                  marginBottom: 20,
+                }}
+              >
+                <Text>{"Story Name: " + read.Title}</Text>
+                <Text>{"Story Author: " + read.AuthorName}</Text>
               </View>
-            }}
-            keyExtractor = {(item, index)=>index.toString()}/>
-        </View>
-      </View>
+            );
+          })}
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  searchText:{
-    height:35,
-    width:'70%',
-    borderWidth:1.5,
-    alignSelf:'center',
-    borderWidth:1.5,
-    fontSize:20,
-    backgroundColor:'#FFF',
-    margin:20
+  container: {
+    flex: 1,
+    marginTop: 30,
   },
-  scrollView:{
-    backgroundColor: '#FFEFEF',
+  searchText: {
+    height: 35,
+    width: "70%",
+    borderWidth: 1.5,
+    alignSelf: "center",
+    borderWidth: 1.5,
+    fontSize: 20,
+    backgroundColor: "#FFF",
+    margin: 20,
+  },
+  scrollView: {
+    backgroundColor: "#FFEFEF",
     marginHorizontal: 15,
-    textAlign: 'center',
+    textAlign: "center",
   },
-  scrollViewText:{
-    color:'#000',
-    fontSize:15
-  }
+  scrollViewText: {
+    color: "#000",
+    fontSize: 15,
+  },
+  item: {
+    backgroundColor: "#f9c2ff",
+    padding: 20,
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
+  title: {
+    fontSize: 32,
+  },
+  itemContainer: {
+    height: 80,
+    width: "100%",
+    borderWidth: 2,
+    borderColor: "pink",
+    justifyContent: "center",
+    alignSelf: "center",
+  },
 });

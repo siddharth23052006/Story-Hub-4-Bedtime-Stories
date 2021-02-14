@@ -13,11 +13,7 @@ export default class WriteStorySceen extends React.Component{
     }
   }
 
-  submitStory = async()=>{
-    /*/*db.collection("stories").doc("story-1").get()
-    .then((doc)=>{
-      console.log(doc.data());
-    });*/
+  submitStory = ()=>{
     db.collection("stories").add({
       Title: this.state.title,
       AuthorName: this.state.authorName,
