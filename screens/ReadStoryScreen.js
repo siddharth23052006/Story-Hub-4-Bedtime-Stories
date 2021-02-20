@@ -1,149 +1,64 @@
 import React from "react";
-import {StyleSheet, Text, View, FlatList, SafeAreaView, ScrollView, TextInput} from "react-native";
+import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import db from "../Config";
 
-const Item = ({ title }) => (
-  <View style={styles.item}>
-    <Text style={styles.title}>{title}</Text>
-  </View>
-);
-
 export default class ReadStoryScreen extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+
     this.state = {
-      storiesInDB: [],
+      story: [],
       search: "",
-      searchResults: [],
     };
   }
 
-  retrieveStories = () => {
-    if (this.state.searchResults===[]){
-    var allStories = [];
-    db.collection("stories")
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          allStories.push(doc.data());
-          // console.log(allStories);
-        });
-        this.setState({ storiesInDB: allStories });
-        console.log("if condition retrieve stories");
+  componentDidMount = async () => {
+    const allStories = await db.collection("stories").get();
+
+    allStories.docs.map((doc) => {
+      this.setState({
+        story: [...this.state.story, doc.data()],
       });
-    }
-    else{
-      this.setState({storiesInDB:this.state.searchResults});
-      console.log("else condition retrieve stories");
-    }
+    });
   };
 
-  searchFilter = async(searchInput) => {
-    console.log("Search Filter function is called");
-    if (searchInput != "") {
-      const results = await db.collection("stories").where("Title", "==", searchInput)
-        .get()
-        .then((querySnapshot) => {
-          querySnapshot.forEach((doc) =>{
-            this.setState({ searchResults: results, storiesInDB:[] });
-            console.log('results setstate.')
-          });
-        });        
-      console.log("if condition search filter");
-      return(
-        <ScrollView>
-        {this.state.searchResults.map((read, index) => {
-          return (
-            <View
-              key={index}
-              style={{
-                borderBottomWidth: 2,
-                marginTop: 20,
-                marginBottom: 20,
-              }}
-            >
-              <Text>{"Story Name: " + read.Title}</Text>
-              <Text>{"Story Author: " + read.AuthorName}</Text>
-            </View>
-          );
-        })}
-      </ScrollView>
-      );
-    }
-    else {
-      this.setState({ searchResults: this.state.storiesInDB });
-      console.log("else condition search filter");
-    }
+  searchFilterFunction = async (text) => {
+    this.setState({ story: [] });
+    const story = await db
+      .collection("stories")
+      .where("Title", "==", text)
+      .get();
+    story.docs.map((doc) => {
+      this.setState({
+        story: [...this.state.story, doc.data()],
+      });
+    });
   };
 
-  componentDidMount() {
-    this.retrieveStories();
-    // const allStories = await db.collection("stories").get();
-
-    // allStories.docs.map((doc) => {
-    //   this.setState({
-    //     storiesInDB: [...this.state.storiesInDB, doc.data()],
-    //   });
-    // });
-  }
-  renderItem = ({ item }) => <Item title={item.Title} />;
   render() {
     return (
-      // <View>
-      //    <Header
-      //     backgroundColor={"#FF0038"}
-      //     centerComponent={{
-      //       text: "Story Hub",
-      //       style: { color: "#EEE", fontSize: 20, fontWeight: "bold" },
-      //     }}
-      //   />
-      //   <View>
-      //     <TextInput
-      //       style={styles.searchText}
-      //       placeholder="Search for a story title"
-      //       onChangeText={(search) => {
-      //         this.searchFilter(search);
-      //         this.setState({ search: search });
-      //       }}
-      //       value={this.state.search}
-      //     />
-      <SafeAreaView style={styles.container}>
-        {/* <FlatList
-          data={this.state.storiesInDB}
-          renderItem={this.renderItem}
-          keyExtractor={(item) => item.id}
-        /> */}
-        {/*<FlatList
-          data={this.state.allStories}
-          renderItem={({ item }) => (
-            <View style={styles.itemContainer}>
-              <Text>Title: {item.Title}</Text>
-              <Text>Author : {item.AuthorName}</Text>
-            </View>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-        />
-        {/* <FlatList
-                  data={this.state.storiesInDB}
-          renderItem={({ item }) => {
-            <View style={{ flex: 1 }}>
-              <Text>Title: {item.Title}</Text>
-              <Text>Author: {item.AuthorName}</Text>
-            </View>;
-          }}
-          keyExtractor={(item, index) => index.toString()}
-        /> */}
-        <TextInput
-          style={styles.searchText}
-          placeholder="Search for a story title"
-          onChangeText={(search) => {
-            this.searchFilter(search);
-            this.setState({ search: search });
-          }}
-          value={this.state.search}
-        />
+      <View style={styles.container}>
+        <View style={styles.searchBar}>
+          <TextInput
+            style={styles.bar}
+            placeholder="Enter Title to search for"
+            onChangeText={(text) => {
+              this.setState({ search: text });
+            }}
+          />
+
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={() => {
+              this.searchFilterFunction(this.state.search);
+            }}
+          >
+            <Text>Search</Text>
+          </TouchableOpacity>
+        </View>
+
         <ScrollView>
-          {this.state.storiesInDB.map((read, index) => {
+          {this.state.story.map((read, index) => {
             return (
               <View
                 key={index}
@@ -153,13 +68,14 @@ export default class ReadStoryScreen extends React.Component {
                   marginBottom: 20,
                 }}
               >
-                <Text>{"Story Name: " + read.Title}</Text>
+                <Text>{"Story Title: " + read.Title}</Text>
                 <Text>{"Story Author: " + read.AuthorName}</Text>
+                <Text>{"Story: " + read.Story}</Text>
               </View>
             );
           })}
         </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   }
 }
@@ -167,42 +83,36 @@ export default class ReadStoryScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 30,
+    marginTop: 20,
   },
-  searchText: {
-    height: 35,
-    width: "70%",
-    borderWidth: 1.5,
-    alignSelf: "center",
-    borderWidth: 1.5,
-    fontSize: 20,
-    backgroundColor: "#FFF",
-    margin: 20,
+  searchBar: {
+    flexDirection: "row",
+    height: 40,
+    width: "auto",
+    borderWidth: 1,
+    alignItems: "center",
+    padding: 10,
+    margin:10
   },
-  scrollView: {
-    backgroundColor: "#FFEFEF",
-    marginHorizontal: 15,
-    textAlign: "center",
-  },
-  scrollViewText: {
-    color: "#000",
-    fontSize: 15,
-  },
-  item: {
-    backgroundColor: "#f9c2ff",
-    padding: 20,
-    marginVertical: 8,
-    marginHorizontal: 16,
-  },
-  title: {
-    fontSize: 32,
-  },
-  itemContainer: {
-    height: 80,
-    width: "100%",
+  bar: {
     borderWidth: 2,
-    borderColor: "pink",
-    justifyContent: "center",
-    alignSelf: "center",
+    height: 30,
+    width: 260,
+    paddingLeft: 10,
+    borderRadius: 20,
+  },
+  searchButton: {
+    alignSelf:'center',
+    width:60,
+    height:30,
+    borderRadius:15,
+    backgroundColor:'#FF0038',
+    borderColor:'#000',
+    borderWidth:1,
+    alignContent:'center',
+    alignItems:'center',
+    marginTop:60,
+    marginBottom:60,
+    justifyContent:'center'
   },
 });
